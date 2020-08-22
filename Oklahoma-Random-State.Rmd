@@ -47,28 +47,10 @@ df$Week <- as.Date(cut(df$date,
   start.on.monday = FALSE)) # changes weekly break point to Sunday
 
 ```
+
 ```{r}
 weekly_cases <- aggregate(DailyCases~Week,data=df,FUN=sum)
 weekly_deaths <- aggregate(DailyDeaths~Week,data=df,FUN=sum)
-```
-```{r}
-plot(weekly_cases$Week,weekly_cases$DailyCases,type="h",main="Weekly Cases")
-grid(col="black")
-plot(weekly_deaths$Week,weekly_deaths$DailyDeaths,type="h",main="Weekly Deaths")
-grid(col="black")
-
-```
-
-```{r}
-monthly_cases <- aggregate(DailyCases~Month,data=df,FUN=sum)
-monthly_deaths <- aggregate(DailyDeaths~Month,data=df,FUN=sum)
-```
-```{r}
-plot(monthly_cases$Month,monthly_cases$DailyCases,type="h",main="Monthly Cases")
-grid(col="black")
-plot(monthly_deaths$Month,monthly_deaths$DailyDeaths,type="h",main="Monthly Deaths")
-grid(col="black")
-
 ```
 
 ```{r}
@@ -79,4 +61,23 @@ barplot(DailyDeaths ~Week,data=weekly_deaths,main="Weekly COVID-19 Deaths",
         xlab="Weekly Date",ylab="Deaths")
 grid(col="black")
 ```
+
+
+```{r}
+monthly_cases <- aggregate(DailyCases~Month,data=df,FUN=sum)
+monthly_deaths <- aggregate(DailyDeaths~Month,data=df,FUN=sum)
+```
+
+```{r}
+barplot(DailyCases ~Month,data=monthly_cases,main="Monthly COVOD-19 Cases",xlab="MonthlyDate",ylab="Cases")
+grid(col="black")
+
+barplot(DailyDeaths ~Month,data=monthly_deaths,main="Monthly COVID-19 Deaths",
+        xlab="Weekly Date",ylab="Deaths")
+grid(col="black")
+```
+
+
+
+
 
