@@ -1,0 +1,102 @@
+---
+title: 'COVID-10 Random State: Rhode Island'
+author: "David J Jackson"
+date: "8/24/2020"
+output: 
+  html_document: 
+    fig_width: 9
+    fig_height: 7
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(RSQLite)
+rm(list=ls())
+```
+```{r}
+source("../DATA/movavg.R")
+```
+```{r}
+db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+```
+
+## COVID-19 Analysis for the State of Rhode Island
+
+```{r}
+# PUll State level data
+RI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Rhode Island'")
+RI$date <- as.Date(RI$date)
+RI$date <- sort(RI$date,decreasing = TRUE)
+str(RI)
+```
+```{r}
+RIC <- dbGetQuery(db,"select date,state,county,new_cases,new_deaths from  COUNTYDAILY where state='Rhode Island'")
+RIC$date <- as.Date(RIC$date)
+RIC$date <- sort(RIC$date,decreasing = TRUE)
+str(RIC)
+```
+
+## Plot Daily New Cases and New Deaths 
+####  Cumulative Total Cases and Deaths
+
+```{r}
+plot(RI$date,RI$TotalCases,type="l",main="Cumulative Cases")
+grid(col="black")
+plot(RI$date,RI$TotalDeaths,type="l",main="Cumulative Deaths")
+grid(col="black")
+```
+
+####  Total Cases, Total Deaths (w/ 14 Day Moving Avearge) by Date
+
+```{r}
+RI$MAC <- movingAverage(RI$new_cases,14)
+RI$MAD <- movingAverage(RI$new_deaths,14)
+plot(RI$date,RI$new_cases,type="l",main="Total Cases by Date",col="black")
+lines(RI$date,RI$MAC,col="red")
+grid(col="black")
+plot(RI$date,RI$new_deaths,type="l",main="Total Deaths by Date")
+lines(RI$date,RI$MAD,col="red")
+grid(col="black")
+```
+
+#### Weekly and MOntly New Cases and New Deaths.
+
+```{r}
+RI$Monthly <- as.Date(cut(RI$date,
+  breaks = "month"))
+RI$Weekly <- as.Date(cut(RI$date,
+  breaks = "week",
+  start.on.monday = FALSE)) # changes weekly break point to Sunday
+
+```
+
+```{r}
+weekly_cases <- aggregate(new_cases~Weekly,data=RI,FUN=sum)
+weekly_deaths <- aggregate(new_deaths~Weekly,data=RI,FUN=sum)
+weekly_cases$RCases <- weekly_deaths$new_deaths / weekly_cases$new_cases *100
+```
+
+```{r}
+barplot(new_cases ~Weekly,data=weekly_cases,main="Weekly COVOD-19 Cases",xlab="Weekly Date",ylab="Cases")
+grid(col="black")
+
+barplot(new_deaths ~Weekly,data=weekly_deaths,main="Weekly COVID-19 Deaths",
+        xlab="Weekly Date",ylab="Deaths")
+grid(col="black")
+
+barplot(RCases ~Weekly,data=weekly_cases,main="Weekly COVID-19 Deaths",
+        xlab="Weekly Date",ylab="Deaths")
+grid(col="black")
+```
+
+### Total New Cases and Deaths from Jun. 1, 2020 - Present
+
+```{r}
+df <- subset(RI,date >="2020-06-01")
+plot(df$date,df$new_cases,type="l",main="Daily New Cases")
+grid(col="black")
+
+plot(df$date,df$new_deaths,type="l",main="Daily New Deaths")
+grid(col="black")
+```
+
