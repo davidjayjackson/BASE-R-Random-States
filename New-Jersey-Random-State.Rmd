@@ -73,13 +73,13 @@ lines(df$Date,df$sm75,col="red")
 grid(col="black")
 ```
 ```{r}
-# df$index <- 1:nrow(df)
-# loess25 <- loess(df$DailyDeaths~df$index,span=0.25)
-# df$sm25 <- predict(loess25)
-# 
-# plot(df$Date,df$DailyDeaths,type="l",main="Daily coID-19 Deaths(0.25)")
-# lines(df$Date,df$sm25,col="red")
-# grid(col="black")
+df$index <- 1:nrow(df)
+loess25 <- loess(df$DailyDeaths~df$index,span=0.25)
+df$sm25 <- predict(loess25)
+
+plot(df$Date,df$DailyDeaths,type="l",main="Daily coID-19 Deaths(0.25)")
+lines(df$Date,df$sm25,col="red")
+grid(col="black")
 ```
 
 ### Weekly and Monthly Cases and Deaths

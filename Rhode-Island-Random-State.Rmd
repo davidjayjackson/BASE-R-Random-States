@@ -17,7 +17,7 @@ rm(list=ls())
 source("../DATA/movavg.R")
 ```
 ```{r}
-db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+ db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
 ```
 
 ## COVID-19 Analysis for the State of Rhode Island
@@ -30,10 +30,10 @@ RI$date <- sort(RI$date,decreasing = TRUE)
 str(RI)
 ```
 ```{r}
-RIC <- dbGetQuery(db,"select date,state,county,new_cases,new_deaths from  COUNTYDAILY where state='Rhode Island'")
-RIC$date <- as.Date(RIC$date)
-RIC$date <- sort(RIC$date,decreasing = TRUE)
-str(RIC)
+# RIC <- dbGetQuery(db,"select date,state,county,new_cases,new_deaths from  COUNTYDAILY where state='Rhode Island'")
+# RIC$date <- as.Date(RIC$date)
+# RIC$date <- sort(RIC$date,decreasing = TRUE)
+# str(RIC)
 ```
 
 ## Plot Daily New Cases and New Deaths 
