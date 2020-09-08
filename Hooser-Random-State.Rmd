@@ -1,7 +1,7 @@
 ---
 title: 'COVID-19 Random State: Missouri'
 author: "David J Jackson"
-date: "09/03/2020"
+date: "09/07/2020"
 output: html_document
 ---
 
@@ -92,10 +92,10 @@ plot(df$date,df$new_deaths,type="l",main="Daily New Deaths")
 grid(col="black")
 ```
 
-### Top 5 Countries For The Last Seven (7) Days
+### Top 5 countries by Single day totals for Aug. 30, 2020
 
 ```{r}
-df <- subset(DF,date >=Sys.Date() -7 )
+df <- subset(DF,date =="2020-09-06" )
 Top <- df[order(df$new_cases,decreasing = TRUE),]
 Top5 <-head(Top,n=5)
 barplot(new_cases ~county,data=Top5,main="Top 5 Counties Ranked by single Day Cases",xlab="(For Sept. 4, 2020)",ylab="Cases")
