@@ -1,7 +1,7 @@
 ---
-title: 'COVID-19 Random State: South Oregon'
+title: 'COVID-19 Random State: Tennessee'
 author: "David J Jackson"
-date: "09/01/2020"
+date: "09/03/2020"
 output: html_document
 ---
 
@@ -17,13 +17,13 @@ db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
 
 ```{r}
 # PUll State level data
-VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Oregon")
+VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Tennessee'")
 VI$date <- as.Date(VI$date)
 VI$date <- sort(VI$date,decreasing = TRUE)
 str(VI)
 
 ## County Data
-DF <- dbGetQuery(db,"select date,state,county,new_cases,new_deaths from  COUNTYDAILY where state='Oregon'")
+DF <- dbGetQuery(db,"select date,state,county,new_cases,new_deaths from  COUNTYDAILY where state='Tennessee'")
 DF$date <- as.Date(DF$date)
 str(DF$date)
 ```
@@ -95,15 +95,15 @@ grid(col="black")
 ### Top 5 countries by Single day totals for Aug. 30, 2020
 
 ```{r}
-df <- subset(DF,date =="2020-08-31" )
+df <- subset(DF,date =="2020-09-02" )
 Top <- df[order(df$new_cases,decreasing = TRUE),]
 Top5 <-head(Top,n=5)
-barplot(new_cases ~county,data=Top5,main="Top 5 Counties Ranked by single Day Cases",xlab="(For August 31, 2020)",ylab="Cases")
+barplot(new_cases ~county,data=Top5,main="Top 5 Counties Ranked by single Day Cases",xlab="(For Sept. 2, 2020)",ylab="Cases")
 grid(col="black")
 
 Topd <- df[order(df$new_deaths,decreasing = TRUE),]
 Top5d <-head(Topd,n=5)
-barplot(new_deaths ~county,data=Top5d,main="Top 5 Counties Ranked by single Day Deaths",xlab="(For August 31, 2020)",ylab="Cases")
+barplot(new_deaths ~county,data=Top5d,main="Top 5 Counties Ranked by single Day Deaths",xlab="(For Sept. 2, 2020)",ylab="Cases")
 grid(col="black")
 ```
 
