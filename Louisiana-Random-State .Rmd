@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(RSQLite)
 library(ggplot2)
+library(scales)
 ```
 ```{r}
 rm(list=ls())
@@ -24,10 +25,11 @@ VI$date <- sort(VI$date,decreasing = TRUE)
 str(VI)
 
 ## County Data
+```{r}
 DF <- dbGetQuery(db,"select date,state,county,new_cases,new_deaths from  COUNTYDAILY where state='New Hampshire'")
 DF$date <- as.Date(DF$date)
 str(DF$date)
-```'
+```
 
 ## Plot Daily New Cases and New Deaths 
 ####  Cumulative Total Cases and Deaths
