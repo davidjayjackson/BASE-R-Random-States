@@ -1,0 +1,110 @@
+---
+title: "Arizona's Battle with COVID-19"
+author: "David J Jackson"
+date: "9/20/2020"
+output: 
+  html_document: 
+    fig_width: 9
+    fig_height: 7
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(scales)
+library(RSQLite)
+theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed')))
+```
+
+## New York Times COVID-19 Data
+* Source: https://github.com/nytimes/covid-19-data
+* SQLite DB: https://github.com/davidjayjackson/COVIDDB
+
+```{r}
+# PUll State level data
+rm(list=ls())
+source("../DATA/movavg.R")
+
+db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+
+VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Arizona'")
+VI$date <- as.Date(VI$date)
+VI$date <- sort(VI$date,decreasing = TRUE)
+str(VI)
+```
+
+```{r}
+## County Data
+DF <- dbGetQuery(db,"select date,state,county,new_cases,new_deaths from  COUNTYDAILY where state='Arizona'")
+DF$date <- as.Date(DF$date)
+str(DF$date)
+```
+
+### Cumulative Cases and Deaths
+
+```{r}
+ggplot(VI) + geom_line(aes(x=date,y=TotalCases ),col="red") +
+  labs(title="Cumulative Cases by Date") +
+  scale_y_continuous(labels = scales::comma)
+
+ggplot(VI) + geom_line(aes(x=date,y=TotalDeaths ),col="red") +
+  labs(title="Cumulative  Deaths by Date") +
+  scale_y_continuous(labels = scales::comma)
+```
+
+### Total Cases and Deaths by Date
+
+```{r}
+VI <-  VI[order(VI$date,decreasing = TRUE),]
+VI$MAC <- movingAverage(VI$new_cases,14,center=TRUE)
+VI$MAD <- movingAverage(VI$new_deaths,14,center=TRUE)
+```
+
+```{r}
+ggplot(VI) + geom_line(aes(x=date,y=new_cases,col="Daily Cases")) +
+  geom_line(aes(x=date,y=MAC,col="Moving Average")) + 
+  labs(title="Arizona Cases by Date")
+
+ggplot(VI) + geom_line(aes(x=date,y=new_deaths,col="Daily Deaths")) +
+  geom_line(aes(x=date,y=MAD,col="Moving Average")) + 
+  labs(title="Arizona Deaths by Date")
+```
+
+### Weekly and MOnthly Cases and Deaths
+
+```{r}
+VI$Monthly <- as.Date(cut(VI$date,
+  breaks = "month"))
+VI$Weekly <- as.Date(cut(VI$date,
+  breaks = "week",
+  start.on.monday = FALSE)) # changes weekly break point to Sunday
+
+```
+
+```{r}
+weekly_cases <- aggregate(new_cases~Weekly,data=VI,FUN=sum)
+weekly_deaths <- aggregate(new_deaths~Weekly,data=VI,FUN=sum)
+# weekly_cases$RCases <- weekly_deaths$new_deaths / weekly_cases$new_cases *100
+```
+```{r}
+ggplot(weekly_cases) + geom_col(aes(x=Weekly,y=new_cases)) +
+  labs(title="Total Cases by Week")
+
+ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
+  labs(title="Total Deaths by Week")
+```
+
+#### Monthly Numbers
+
+```{r}
+monthly_cases <- aggregate(new_cases~Monthly,data=VI,FUN=sum)
+monthly_deaths <- aggregate(new_deaths~Monthly,data=VI,FUN=sum)
+# weekly_cases$RCases <- weekly_deaths$new_deaths / weekly_cases$new_cases *100
+```
+```{r}
+ggplot(monthly_cases) + geom_col(aes(x=Monthly,y=new_cases)) +
+  labs(title="Total Cases by Month")
+
+ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
+  labs(title="Total Deaths by Month")
+```

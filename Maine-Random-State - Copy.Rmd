@@ -1,27 +1,31 @@
 ---
-title: 'COVID-19 Random State: Maine'
+title: "COVID-19 Ramdom States Analysis"
 author: "David J Jackson"
-date: "09/17/2020"
-output: html_document
+date: "9/17/2020"
+output: 
+  html_document: 
+    fig_width: 9
+    fig_height: 7
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE,message=FALSE,warning=FALSE,echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(RSQLite)
 library(ggplot2)
 library(scales)
 theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed')))
 
+```
 
-```
-```{r}
-rm(list=ls())
-source("../DATA/movavg.R")
-db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
-```
+## Random States COVID-19 Analysis for Maine.
 
 ```{r}
 # PUll State level data
+rm(list=ls())
+source("../DATA/movavg.R")
+
+db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+
 VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Maine'")
 VI$date <- as.Date(VI$date)
 VI$date <- sort(VI$date,decreasing = TRUE)
@@ -40,23 +44,29 @@ str(DF$date)
 ####  Cumulative Total Cases and Deaths
 
 ```{r}
-plot(VI$date,VI$TotalCases,type="l",main="Cumulative Cases")
-grid(col="black")
-plot(VI$date,VI$TotalDeaths,type="l",main="Cumulative Deaths")
-grid(col="black")
+ggplot(VI) +geom_line(aes(x=date,y=TotalCases)) +
+  labs(title="Cumulative Cases by Date") 
+
+ggplot(VI) +geom_line(aes(x=date,y=TotalDeaths)) +
+  labs(title="Cumulative Deaths by Date") 
+  
 ```
 
-####  Total Cases, Total Deaths (w/ 14 Day Moving Avearge) by Date
+####  Daily Cases, Daily Deaths (w/ 14 Day Moving Avearge) by Date
 
 ```{r}
 VI$MAC <- movingAverage(VI$new_cases,14)
 VI$MAD <- movingAverage(VI$new_deaths,14)
-plot(VI$date,VI$new_cases,type="l",main="Total Cases by Date",col="black")
-lines(VI$date,VI$MAC,col="red")
-grid(col="black")
-plot(VI$date,VI$new_deaths,type="l",main="Total Deaths by Date")
-lines(VI$date,VI$MAD,col="red")
-grid(col="black")
+
+ggplot(VI) +geom_line(aes(x=date,y=new_cases,col="Daily Cases")) + 
+  geom_line(aes(x=date,y=MAC,col="Moving Avg")) +
+  labs(title="Total Cases by Date") 
+
+ggplot(VI) +geom_line(aes(x=date,y=new_deaths,col="Daily Deaths")) + 
+  geom_line(aes(x=date,y=MAD,col="Moving Avg")) +
+  labs(title="Total Deaths by Date") 
+
+  
 ```
 
 #### Weekly  New Cases and New Deaths.
@@ -77,27 +87,25 @@ weekly_cases$RCases <- weekly_deaths$new_deaths / weekly_cases$new_cases *100
 ```
 
 ```{r}
-barplot(new_cases ~Weekly,data=weekly_cases,main="Weekly COVOD-19 Cases",xlab="Weekly Date",ylab="Cases")
-grid(col="black")
+ggplot(weekly_cases) + geom_col(aes(x=Weekly,y=new_cases)) +
+  labs(title="Total Cases by Week")
 
-barplot(new_deaths ~Weekly,data=weekly_deaths,main="Weekly COVID-19 Deaths",
-        xlab="Weekly Date",ylab="Deaths")
-grid(col="black")
-
-barplot(RCases ~Weekly,data=weekly_cases,main="Weekly COVID-19 Death Rate",
-        xlab="Weekly Date",ylab="Deaths")
-grid(col="black")
+ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
+  labs(title="Total Deaths by Week")
 ```
 
 ### Total New Cases and Deaths from Jun. 1, 2020 - Present
 
 ```{r}
 df <- subset(VI,date >="2020-06-01")
-plot(df$date,df$new_cases,type="l",main="Daily New Cases")
-grid(col="black")
+ggplot(df) + geom_line(aes(x=date,y=new_cases)) +
+  geom_smooth(aes(x=date,y=new_cases)) +
+  labs(title="Current Spike in Deaths: Jun. 1, 2020 - Preesent")
 
-plot(df$date,df$new_deaths,type="l",main="Daily New Deaths")
-grid(col="black")
+df <- subset(VI,date >="2020-06-01")
+ggplot(df) + geom_line(aes(x=date,y=new_deaths)) +
+  geom_smooth(aes(x=date,y=new_deaths)) +
+  labs(title="Current Spike in Deaths Jun. 1, 2020 - Present")
 ```
 
 ### Top 5 countries for last 7  days : Total Cases and Deaths
@@ -122,4 +130,3 @@ ggplot(data1) + geom_col(aes(x=county,y=new_deaths)) +
        x="County",y="Total Deaths",caption = "(Source: New York Times)")
 
 ```
-
