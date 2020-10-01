@@ -1,0 +1,115 @@
+---
+title: "New Mexico COVID19"
+author: "David J Jackson"
+date: "9/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(scales)
+library(RSQLite)
+theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed')))
+```
+
+## Import Data from SQLite Db
+* Source: New York Times
+* Source:
+
+```{r}
+rm(list=ls())
+source("../DATA/movavg.R")
+
+db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+
+VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Delaware'")
+VI$date <- as.Date(VI$date)
+VI <-  VI[order(VI$date,decreasing = TRUE),]
+str(VI)
+```
+
+### Cumulative Cases and Deaths
+
+```{r}
+ggplot(VI) + geom_line(aes(x=date,y=TotalCases ),col="red") +
+  labs(title="Cumulative Cases by Date") +
+  scale_y_continuous(labels = scales::comma)
+
+ggplot(VI) + geom_line(aes(x=date,y=TotalDeaths ),col="red") +
+  labs(title="Cumulative  Deaths by Date") +
+  scale_y_continuous(labels = scales::comma)
+```
+
+### Total Cases and Deaths by Date
+
+```{r}
+VI$MAC <- movingAverage(VI$new_cases,14,center=TRUE)
+VI$MAD <- movingAverage(VI$new_deaths,14,center=TRUE)
+```
+
+
+```{r}
+ggplot(VI) + geom_line(aes(x=date,y=new_cases,col="Daily Cases")) +
+  geom_line(aes(x=date,y=MAC,col="Moving Average")) + 
+    labs(title=" Cases by Date") +
+  geom_smooth(aes(x=date,y=new_cases,col="Loess"),span=0.25)
+
+ggplot(VI) + geom_line(aes(x=date,y=new_deaths,col="Daily Deaths")) +
+  geom_line(aes(x=date,y=MAD,col="Moving Average")) + 
+  labs(title=" Deaths by Date") +
+  geom_smooth(aes(x=date,y=new_deaths,col="Loess"),span=0.25)
+```
+
+### Death Rate as Percent "%" by Day
+
+```{r}
+VI$Rate <- VI$new_deaths/VI$new_cases
+VI <- subset(VI,date>="2020-06-01")
+ggplot(VI) + geom_line(aes(x=date,y=Rate)) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title="Daily Mortality Rate",
+       y="Mortality Rate %") +
+  geom_hline(yintercept = mean(is.na(VI$Rate)),col="red") +
+  ylim(0,0.5)
+  
+```
+
+### Weekly and MOnthly Cases and Deaths
+
+```{r}
+VI$Monthly <- as.Date(cut(VI$date,
+  breaks = "month"))
+VI$Weekly <- as.Date(cut(VI$date,
+  breaks = "week",
+  start.on.monday = FALSE)) # changes weekly break point to Sunday
+
+```
+
+```{r}
+weekly_cases <- aggregate(new_cases~Weekly,data=VI,FUN=sum)
+weekly_deaths <- aggregate(new_deaths~Weekly,data=VI,FUN=sum)
+# weekly_cases$RCases <- weekly_deaths$new_deaths / weekly_cases$new_cases *100
+```
+```{r}
+ggplot(weekly_cases) + geom_col(aes(x=Weekly,y=new_cases)) +
+  labs(title="Total Cases by Week")
+
+ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
+  labs(title="Total Deaths by Week")
+```
+
+#### Monthly Numbers
+
+```{r}
+monthly_cases <- aggregate(new_cases~Monthly,data=VI,FUN=sum)
+monthly_deaths <- aggregate(new_deaths~Monthly,data=VI,FUN=sum)
+
+```
+```{r}
+ggplot(monthly_cases) + geom_col(aes(x=Monthly,y=new_cases)) +
+  labs(title="Total Cases by Month")
+
+ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
+  labs(title="Total Deaths by Month")
+```
