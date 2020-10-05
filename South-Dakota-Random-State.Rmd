@@ -2,7 +2,9 @@
 title: 'Covid19 Random State: South Dakota'
 author: "David RJ Jackson"
 date: "10/1/2020"
-output: html_document
+output: 
+  html_document: 
+    fig_width: 9
 ---
 
 ```{r setup, include=FALSE}
@@ -28,6 +30,7 @@ VI$date <- as.Date(VI$date)
 VI <-  VI[order(VI$date,decreasing = TRUE),]
 str(VI)
 ```
+
 ### Cumulative Cases and Deaths
 
 ```{r}

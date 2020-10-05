@@ -23,7 +23,7 @@ source("../DATA/movavg.R")
 
 db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
 
-VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Delaware'")
+VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='South Dakota'")
 VI$date <- as.Date(VI$date)
 VI <-  VI[order(VI$date,decreasing = TRUE),]
 str(VI)
