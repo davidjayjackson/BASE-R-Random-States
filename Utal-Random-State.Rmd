@@ -1,23 +1,22 @@
 ---
-title: 'COVID19 Random State: Vermont'
+title: 'COVID19 Random State: Utah'
 author: "David RJ Jackson"
-date: "10/7/2020"
-output: 
-  html_document: 
-    fig_width: 9
+date: "10/8/2020"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(scales)
 library(RSQLite)
 theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed')))
 ```
-## Import Data from SQLite Db
-* Source: New York Times
-* Source:
+
+### Washington Post NWebstie for Oct. 8,  2020
+* Source: https://www.washingtonpost.com/politics/pence-harris-vp-debate/2020/10/08/96efe1da-08b3-11eb-859b-f9c27abe638d_story.html
+
+"The **Level of Infection** in Utah, where the debate was held, has been running at more than twice the national average, making both the state and the Salt Lake region areas of “code red” concern by the White House coronavirus task force.."
 
 ```{r}
 rm(list=ls())
@@ -25,7 +24,7 @@ source("../DATA/movavg.R")
 
 db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
 
-VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Vermont'")
+VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Utah'")
 VI$date <- as.Date(VI$date)
 VI <-  VI[order(VI$date),]
 summary(VI$new_cases)
@@ -77,6 +76,7 @@ ggplot(VI) + geom_line(aes(x=date,y=Rate)) +
   geom_hline(yintercept = mean(VI$Rate),col="red")
   
 ```
+
 ### Weekly and MOnthly Cases and Deaths
 
 ```{r}
@@ -115,4 +115,3 @@ ggplot(monthly_cases) + geom_col(aes(x=Monthly,y=new_cases)) +
 ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
   labs(title="Total Deaths by Month")
 ```
-
