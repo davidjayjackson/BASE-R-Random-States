@@ -1,7 +1,7 @@
 ---
 title: 'Hawaii: Random State Covid19'
 author: "David RJ Jackson"
-date: "10/23/2020"
+date: "11/05/2020"
 output: html_document
 ---
 

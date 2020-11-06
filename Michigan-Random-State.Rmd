@@ -1,7 +1,7 @@
 ---
 title: "Michigan's Battle w/ COVID-19"
 author: "David J Jackson"
-date: "9/22/2020"
+date: "11/05/2020"
 output: 
   html_document: 
     fig_width: 9
@@ -56,11 +56,11 @@ VI$MAD <- movingAverage(VI$new_deaths,14,center=TRUE)
 
 ```{r}
 ggplot(VI) + geom_line(aes(x=date,y=new_cases,col="Daily Cases")) +
-  geom_line(aes(x=date,y=MAC,col="Moving Average")) + 
+  geom_smooth(aes(x=date,y=new_cases,col="Loess"),span=0.25) + 
     labs(title="Michigan Cases by Date")
 
 ggplot(VI) + geom_line(aes(x=date,y=new_deaths,col="Daily Deaths")) +
-  geom_line(aes(x=date,y=MAD,col="Moving Average")) + 
+  geom_smooth(aes(x=date,y=new_deaths,col="Loess")) + 
   labs(title="Michigan Deaths by Date")
 ```
 
