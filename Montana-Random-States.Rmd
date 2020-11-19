@@ -1,7 +1,7 @@
 ---
 title: "Montana COVID19 Analysis"
 author: "David RJ Jackson"
-date: "10/13/2020"
+date: "11/18/2020"
 output: html_document
 ---
 
@@ -104,4 +104,15 @@ ggplot(monthly_cases) + geom_col(aes(x=Monthly,y=new_cases)) +
 
 ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
   labs(title="Total Deaths by Month")
+```
+
+### Cancer Deaths by Year
+
+```{r}
+cancer <- read.csv("../DATA/Cancer-deaths.csv")
+cancer <- subset(cancer,STATE =="MO")
+cancer$DEATHS <- gsub(",","",cancer$DEATHS)
+cancer$YEAR <- as.factor(cancer$YEAR)
+# ggplot(cancer) + geom_col(aes(x=YEAR,y=RATE))
+ggplot(cancer) + geom_col(aes(x=YEAR,y=DEATHS))
 ```
