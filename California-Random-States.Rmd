@@ -1,7 +1,7 @@
 ---
-title: "California Random State COVID19"
+title: "California  Covid-19 Analysis"
 author: "David RJ Jackson"
-date: "10/11/2020"
+date: "11/19/2020"
 output: html_document
 ---
 
@@ -12,6 +12,7 @@ library(scales)
 library(RSQLite)
 theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed')))
 ```
+
 ```{r}
 rm(list=ls())
 db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
@@ -23,7 +24,41 @@ summary(VI$new_cases)
 summary(VI$new_deaths)
 ```
 
-### Cumulative Cases and Deaths
+#### Cancer and Heart Related Deaths by Year
+
+```{r}
+cancer <- dbGetQuery(db,"select * from Cancer where STATE ='CA'")
+# cancer <- read.csv("../DATA/Cancer-deaths.csv")
+# cancer <- subset(cancer,STATE =="CA")
+cancer$DEATHS <- gsub(",","",cancer$DEATHS)
+cancer$YEAR <- as.factor(cancer$YEAR)
+# ggplot(cancer) + geom_col(aes(x=YEAR,y=RATE))
+ggplot(cancer) + geom_col(aes(x=YEAR,y=DEATHS)) +
+  labs(title="Cancer Deaths by Year")
+```
+
+```{r}
+heart <- dbGetQuery(db,"select * from HeartDisease where STATE ='CA'")
+heart$DEATHS <- gsub(",","",heart$DEATHS)
+heart$YEAR <- as.factor(heart$YEAR)
+# ggplot(cancer) + geom_col(aes(x=YEAR,y=RATE))
+ggplot(heart) + geom_col(aes(x=YEAR,y=DEATHS)) +
+  labs(title="Heart Disease  Deaths by Year")
+```
+
+#### Death Rate as Percent "%" by Day
+
+```{r}
+VI$Rate <- VI$new_deaths/VI$new_cases
+VI <- subset(VI,date>="2020-01-26" & Rate >0)
+ggplot(VI) + geom_line(aes(x=date,y=Rate)) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title="Daily Mortality Rate",
+       y="Mortality Rate %") +
+  geom_hline(yintercept = mean(VI$Rate),col="red") 
+```
+
+#### Cumulative Cases and Deaths
 
 ```{r}
 ggplot(VI) + geom_line(aes(x=date,y=TotalCases ),col="red") +
@@ -36,32 +71,21 @@ ggplot(VI) + geom_line(aes(x=date,y=TotalDeaths ),col="red") +
   
 ```
 
-### Total Cases and Deaths by Date
+#### Total Cases and Deaths by Date
 
 ```{r}
 ggplot(VI) + geom_line(aes(x=date,y=new_cases,col="Daily Cases")) +
   labs(title=" Cases by Date") +
-  geom_smooth(aes(x=date,y=new_cases,col="Loess"),span=0.25)
+  geom_smooth(aes(x=date,y=new_cases,col="Loess"),span=0.25) +
+  ylim(0,max(VI$new_cases))
 
 ggplot(VI) + geom_line(aes(x=date,y=new_deaths,col="Daily Deaths")) +
    labs(title=" Deaths by Date") +
-  geom_smooth(aes(x=date,y=new_deaths,col="Loess"),span=0.25)
-```
-
-### Death Rate as Percent "%" by Day
-
-```{r}
-VI$Rate <- VI$new_deaths/VI$new_cases
-VI <- subset(VI,date>="2020-04-01")
-ggplot(VI) + geom_line(aes(x=date,y=Rate)) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(title="Daily Mortality Rate",
-       y="Mortality Rate %") +
-  geom_hline(yintercept = mean(VI$Rate),col="red")
+  geom_smooth(aes(x=date,y=new_deaths,col="Loess"),span=0.25) 
   
 ```
 
-### Weekly and MOnthly Cases and Deaths
+#### Weekly and MOnthly Cases and Deaths
 
 ```{r}
 VI$Monthly <- as.Date(cut(VI$date,
@@ -75,11 +99,12 @@ VI$Weekly <- as.Date(cut(VI$date,
 ```{r}
 weekly_cases <- aggregate(new_cases~Weekly,data=VI,FUN=sum)
 weekly_deaths <- aggregate(new_deaths~Weekly,data=VI,FUN=sum)
-# weekly_cases$RCases <- weekly_deaths$new_deaths / weekly_cases$new_cases *100
 ```
 ```{r}
-ggplot(weekly_cases) + geom_col(aes(x=Weekly,y=new_cases)) +
-  labs(title="Total Cases by Week")
+weekly <- subset(weekly_cases, new_cases >=0)
+ggplot(weekly) + geom_col(aes(x=Weekly,y=new_cases)) +
+  labs(title="Total Cases by Week") 
+  
 
 ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
   labs(title="Total Deaths by Week")
@@ -98,4 +123,12 @@ ggplot(monthly_cases) + geom_col(aes(x=Monthly,y=new_cases)) +
 
 ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
   labs(title="Total Deaths by Month")
+```
+weekly <- subset(weekly_cases, new_cases >=0)
+ggplot(weekly) + geom_col(aes(x=Weekly,y=new_cases)) +
+  labs(title="Total Cases by Week") 
+  
+
+ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
+  labs(title="Total Deaths by Week")
 ```
