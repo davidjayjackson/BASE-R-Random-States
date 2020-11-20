@@ -1,7 +1,7 @@
 ---
-title: "Montana COVID19 Analysis"
+title: "North Dakota COVID-19 Analysis"
 author: "David RJ Jackson"
-date: "11/18/2020"
+date: "11/19/2020"
 output: html_document
 ---
 
@@ -12,17 +12,49 @@ library(scales)
 library(RSQLite)
 theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed')))
 ```
-
-
 ```{r}
 rm(list=ls())
 db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
 
-VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Montana'")
+VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='North Dakota'")
 VI$date <- as.Date(VI$date)
 VI <-  VI[order(VI$date),]
 summary(VI$new_cases)
 summary(VI$new_deaths)
+```
+
+### Cancer and Heart Related Deaths by Year
+
+```{r}
+
+cancer <- dbGetQuery(db,"select * from Cancer where STATE ='ND'")
+# cancer <- read.csv("../DATA/Cancer-deaths.csv")
+# cancer <- subset(cancer,STATE =="MO")
+cancer$DEATHS <- gsub(",","",cancer$DEATHS)
+cancer$YEAR <- as.factor(cancer$YEAR)
+# ggplot(cancer) + geom_col(aes(x=YEAR,y=RATE))
+ggplot(cancer) + geom_col(aes(x=YEAR,y=DEATHS)) +
+  labs(title="Cancer Deaths by Year")
+```
+```{r}
+heart <- dbGetQuery(db,"select * from HeartDisease where STATE ='ND'")
+heart$DEATHS <- gsub(",","",heart$DEATHS)
+heart$YEAR <- as.factor(heart$YEAR)
+# ggplot(cancer) + geom_col(aes(x=YEAR,y=RATE))
+ggplot(heart) + geom_col(aes(x=YEAR,y=DEATHS)) +
+  labs(title="Heart Disease  Deaths by Year")
+```
+
+### Death Rate as Percent "%" by Day
+
+```{r}
+VI$Rate <- VI$new_deaths/VI$new_cases
+VI <- subset(VI,date>="2020-03-17" & Rate >=0)
+ggplot(VI) + geom_line(aes(x=date,y=Rate)) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title="Daily Mortality Rate",
+       y="Mortality Rate %") +
+  geom_hline(yintercept = mean(VI$Rate),col="red") 
 ```
 
 ### Cumulative Cases and Deaths
@@ -36,20 +68,6 @@ ggplot(VI) + geom_line(aes(x=date,y=TotalDeaths ),col="red") +
   labs(title="Cumulative  Deaths by Date") +
   scale_y_continuous(labels = scales::comma) 
   
-```
-
-
-
-### Death Rate as Percent "%" by Day
-
-```{r}
-VI$Rate <- VI$new_deaths/VI$new_cases
-VI <- subset(VI,date>="2020-04-01" & Rate >=0)
-ggplot(VI) + geom_line(aes(x=date,y=Rate)) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(title="Daily Mortality Rate",
-       y="Mortality Rate %") +
-  geom_hline(yintercept = mean(VI$Rate),col="red") 
 ```
 
 ### Total Cases and Deaths by Date
@@ -108,13 +126,3 @@ ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
   labs(title="Total Deaths by Month")
 ```
 
-### Cancer Deaths by Year
-
-```{r}
-cancer <- read.csv("../DATA/Cancer-deaths.csv")
-cancer <- subset(cancer,STATE =="MO")
-cancer$DEATHS <- gsub(",","",cancer$DEATHS)
-cancer$YEAR <- as.factor(cancer$YEAR)
-# ggplot(cancer) + geom_col(aes(x=YEAR,y=RATE))
-ggplot(cancer) + geom_col(aes(x=YEAR,y=DEATHS))
-```
