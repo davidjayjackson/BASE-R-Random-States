@@ -1,0 +1,141 @@
+---
+title: "Connecticut COVID-19 Analysis"
+author: "David RJ Jackson"
+date: "12/1/2020"
+output: 
+  html_document: 
+    fig_width: 9
+    fig_height: 7
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(scales)
+library(RSQLite)
+theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed')))
+```
+
+```{r}
+rm(list=ls())
+db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+
+VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Connecticut'")
+VI$date <- as.Date(VI$date)
+VI <-  VI[order(VI$date),]
+summary(VI$new_cases)
+summary(VI$new_deaths)
+```
+
+
+#### Cancer and Heart Related Deaths by Year
+
+```{r}
+cancer <- dbGetQuery(db,"select * from Cancer where STATE ='CT'")
+# cancer <- read.csv("../DATA/Cancer-deaths.csv")
+# cancer <- subset(cancer,STATE =="CA")
+cancer$DEATHS <- gsub(",","",cancer$DEATHS)
+cancer$YEAR <- as.factor(cancer$YEAR)
+# ggplot(cancer) + geom_col(aes(x=YEAR,y=RATE))
+ggplot(cancer) + geom_col(aes(x=YEAR,y=DEATHS)) +
+  labs(title="Cancer Deaths by Year")
+```
+
+
+```{r}
+heart <- dbGetQuery(db,"select * from HeartDisease where STATE ='CT'")
+heart$DEATHS <- gsub(",","",heart$DEATHS)
+heart$YEAR <- as.factor(heart$YEAR)
+# ggplot(cancer) + geom_col(aes(x=YEAR,y=RATE))
+ggplot(heart) + geom_col(aes(x=YEAR,y=DEATHS)) +
+  labs(title="Heart Disease  Deaths by Year")
+```
+
+#### Death Rate as Percent "%" by Day
+
+```{r}
+VI$Rate <- VI$new_deaths/VI$new_cases
+VI <- subset(VI,date>="2020-01-26" & Rate >0)
+ggplot(VI) + geom_line(aes(x=date,y=Rate)) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title="Daily Mortality Rate",
+       y="Mortality Rate %") +
+  geom_hline(yintercept = mean(VI$Rate),col="red") 
+```
+
+#### Cumulative Cases and Deaths
+
+```{r}
+ggplot(VI) + geom_line(aes(x=date,y=TotalCases ),col="red") +
+  labs(title="Cumulative Cases by Date") +
+  scale_y_continuous(labels = scales::comma)
+
+ggplot(VI) + geom_line(aes(x=date,y=TotalDeaths ),col="red") +
+  labs(title="Cumulative  Deaths by Date") +
+  scale_y_continuous(labels = scales::comma) 
+  
+```
+
+#### Total Cases and Deaths by Date
+
+```{r}
+ggplot(VI) + geom_line(aes(x=date,y=new_cases,col="Daily Cases")) +
+  labs(title=" Cases by Date") +
+  geom_smooth(aes(x=date,y=new_cases,col="Loess"),span=0.25) +
+  ylim(0,max(VI$new_cases))
+
+ggplot(VI) + geom_line(aes(x=date,y=new_deaths,col="Daily Deaths")) +
+   labs(title=" Deaths by Date") +
+  geom_smooth(aes(x=date,y=new_deaths,col="Loess"),span=0.25) 
+  
+```
+
+
+#### Weekly and MOnthly Cases and Deaths
+
+```{r}
+VI$Monthly <- as.Date(cut(VI$date,
+  breaks = "month"))
+VI$Weekly <- as.Date(cut(VI$date,
+  breaks = "week",
+  start.on.monday = FALSE)) # changes weekly break point to Sunday
+
+```
+
+```{r}
+weekly_cases <- aggregate(new_cases~Weekly,data=VI,FUN=sum)
+weekly_deaths <- aggregate(new_deaths~Weekly,data=VI,FUN=sum)
+```
+```{r}
+weekly <- subset(weekly_cases, new_cases >=0)
+ggplot(weekly) + geom_col(aes(x=Weekly,y=new_cases)) +
+  labs(title="Total Cases by Week") 
+  
+
+ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
+  labs(title="Total Deaths by Week")
+```
+
+#### Monthly Numbers
+
+```{r}
+monthly_cases <- aggregate(new_cases~Monthly,data=VI,FUN=sum)
+monthly_deaths <- aggregate(new_deaths~Monthly,data=VI,FUN=sum)
+
+```
+```{r}
+ggplot(monthly_cases) + geom_col(aes(x=Monthly,y=new_cases)) +
+  labs(title="Total Cases by Month")
+
+ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
+  labs(title="Total Deaths by Month")
+```
+```{r}
+weekly <- subset(weekly_cases, new_cases >=0)
+ggplot(weekly) + geom_col(aes(x=Weekly,y=new_cases)) +
+  labs(title="Total Cases by Week") 
+  
+
+ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
+  labs(title="Total Deaths by Week")
+```
