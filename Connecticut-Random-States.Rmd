@@ -1,7 +1,7 @@
 ---
 title: "Connecticut COVID-19 Analysis"
-author: "David RJ Jackson"
-date: "12/1/2020"
+author: "David J. Jackson"
+date: "02/11/2021 7:25 PM/EST"
 output: 
   html_document: 
     fig_width: 9
@@ -18,13 +18,15 @@ theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed'
 
 ```{r}
 rm(list=ls())
-db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/NYTimes.sqlite3")
 
 VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Connecticut'")
 VI$date <- as.Date(VI$date)
 VI <-  VI[order(VI$date),]
 summary(VI$new_cases)
+sum(VI$new_cases)
 summary(VI$new_deaths)
+sum(VI$new_deaths)
 ```
 
 
@@ -129,13 +131,4 @@ ggplot(monthly_cases) + geom_col(aes(x=Monthly,y=new_cases)) +
 
 ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
   labs(title="Total Deaths by Month")
-```
-```{r}
-weekly <- subset(weekly_cases, new_cases >=0)
-ggplot(weekly) + geom_col(aes(x=Weekly,y=new_cases)) +
-  labs(title="Total Cases by Week") 
-  
-
-ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
-  labs(title="Total Deaths by Week")
 ```

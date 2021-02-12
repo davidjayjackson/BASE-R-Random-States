@@ -1,7 +1,7 @@
 ---
 title: "Arizona Covid-19 Analysis"
 author: "David RJ Jackson"
-date: "11/19/2020"
+date: "02/11/2021 7:15 PM/EST"
 output: html_document
 ---
 
@@ -14,7 +14,7 @@ theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed'
 ```
 ```{r}
 rm(list=ls())
-db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/NYTimes.sqlite3")
 
 VI <- dbGetQuery(db,"select date,state,TotalCases,TotalDeaths,new_cases,new_deaths from  STATESDAILY where state='Arizona'")
 VI$date <- as.Date(VI$date)
@@ -101,6 +101,9 @@ weekly_cases <- aggregate(new_cases~Weekly,data=VI,FUN=sum)
 weekly_deaths <- aggregate(new_deaths~Weekly,data=VI,FUN=sum)
 # weekly_cases$RCases <- weekly_deaths$new_deaths / weekly_cases$new_cases *100
 ```
+
+#### Weekly Cases and Deaths
+
 ```{r}
 weekly <- subset(weekly_cases, new_cases >=0)
 ggplot(weekly) + geom_col(aes(x=Weekly,y=new_cases)) +
@@ -109,9 +112,10 @@ ggplot(weekly) + geom_col(aes(x=Weekly,y=new_cases)) +
 
 ggplot(weekly_deaths) + geom_col(aes(x=Weekly,y=new_deaths)) +
   labs(title="Total Deaths by Week")
-```
+``
 
 #### Monthly Numbers
+
 
 ```{r}
 monthly_cases <- aggregate(new_cases~Monthly,data=VI,FUN=sum)
@@ -125,3 +129,6 @@ ggplot(monthly_cases) + geom_col(aes(x=Monthly,y=new_cases)) +
 ggplot(monthly_deaths) + geom_col(aes(x=Monthly,y=new_deaths)) +
   labs(title="Total Deaths by Month")
 ```
+`
+
+
